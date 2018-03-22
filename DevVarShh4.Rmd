@@ -14,18 +14,19 @@ library("ade4")
 library("ecodist")
 library("phytools")
 library("dplyr")
+library("tidyr")
 
 setwd("~/Documents/varpap")
 ed <- read.csv("ed.csv")
 setwd("~/Documents/varpap/new")
 
-jaw <- "md"
+jaw <- "mx"
 
-mxstg <- read.csv(paste(jaw, "FVBDUHiCD1scores20.csv", sep=""))
+mxstg <- read.table(paste(jaw, "FVBDUHiCD1scores20.txt", sep=""))
 
-mxstg$nid <- paste(ed$Weight, ed$Litter, sep="")
+mxstg$nid <- as.factor(paste(mxstg$Weight, mxstg$Clutch, sep=""))
 
-Sys.glob("*")
+mxstg <- subset(mxstg, mxstg$Strain != "CD1")
 ```
 
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
@@ -60,85 +61,50 @@ mxstgp <- left_join(mxstg, ndat, by="nid")
 
 write.csv(ndat, file="ndat.csv")
 
-write.csv(mxstgp, file="dat.csv")
+write.csv(mxstgp, file=paste(jaw, "dat.csv", sep=""))
 ```
 
 
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-mxstgp2 <- read.csv("dat2.csv")
+mxstgp2 <- read.csv(paste(jaw,"dat2.csv", sep="")) %>%
+filter(!(is.na(ident)))
+
+
 
 mxstgp2 <- left_join(mxstgp2, ndat, by="ident")
 
 write.csv(mxstgp2, file=paste(jaw, "datagood.csv", sep=""))
 
-mmxstgp2 <- gather(mxstgp2, key="sdnum", value="NewMod", c(37,41,42))
+mxstgp2 <- read.csv( file=paste(jaw, "datagood.csv", sep=""))
 
-ggplot(mmxstgp2, aes(x=Age, y=NewMod, colour=sdnum)) +
-  geom_point()+ 
-  theme_minimal()+ 
-  xlab("Old model cdpc")+
-  ylab("New model cdpc")
+#mmxstgp2 <- gather(mxstgp2, key="sdnum", value="NewMod", c(35,39,40))
+#md
 
-```
+#mmxstgp2 <- gather(mxstgp2, key="sdnum", value="NewMod", c(38,42,43))
+#mx
 
-#Import
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-
-mxstg <- read.table("mxFVBDUHiCD1scores20.txt")
-
-
-
-mxstg$nid <- paste(mxstg$Weight, mxstg$Clutch, sep="")
-
-m <- subset(mxstg, mxstg$nid %in% ed$nid)
-m <- m[order(m$nid),]
-ged <- subset(ed, ed$nid %in% mxstg$nid)
-ged <- ged[order(ged$nid),]
-
-dat <- cbind(m, ged)
-dat$nid == dat$mxstgnid
-dat$Age == dat$Age.dpc.
-
-write.csv(dat, file="dat.csv")
-
-add <- subset(mxstg,  !(mxstg$mxstgnid %in% ed$nid) & mxstg$Strain != "CD1")
-
-mxstg <- read.csv("full20.csv")
-ggplot(mxstg, aes(x=Age, y= mediantemps, label=ID, colour=stateord))+geom_point()+geom_text()
-
+#ggplot(mmxstgp2, aes(x=Age, y=NewMod, colour=sdnum)) +  geom_point()+   theme_minimal()+   xlab("Old model cdpc")+  ylab("New model cdpc")
 
 ```
 
-
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
-ed <- ed[order(ed$nid),]
+names(mxstgp2)[names(mxstgp2) == 'Strain.x'] <- 'Strain'
 
-ed$aw <- paste(ed$Age.dpc., ed$Weight)
+names(mxstgp2)[names(mxstgp2) == 'Weight.x'] <- 'Weight'
 
-add$aw <- paste(add$Age, add$Weight)
+#md
+#mxstgmelted <- gather(mxstgp2, key="variable", value="value", c(8,9,11,13))
 
-write.csv(add, file="add.csv")
+#mx
+mxstgmelted <- gather(mxstgp2, key="variable", value="value", c(11,12,14,16))
 
-
-ged <- subset(ed, ed$Litter %in% mxstg$Clutch)
-ged <- subset(ged, ged$nid %in% mxstg$mxstgnid)
-
-
-
-#mxstg <- mxstg[order(mxstg$mxstgnid),]
-mxstgdf <- subset(mxstg, mxstg$Strain == "DUHi" | mxstg$Strain == "FVB" )
-mxstgdf <- subset(mxstgdf, mxstgdf$mxstgnid %in% ged$nid)
-mxstgdf <- cbind(mxstgdf, ged[,c(2,9:12)])
-mxstgdf <- subset(mxstgdf, mxstgdf$Age == mxstgdf$Age.dpc.)
-
-mxstgmelted <- melt(mxstg, id.vars=c("ID", "Strain", "Age", "Weight", "Clutch", "shh_M2_spot", "M1_spot_split_LR", "Total_state", "stateord", "Symmetry", "groupwt", "mediantemps", "Date", "X", "nid"))
-  
 mxstgmelted$variable[mxstgmelted$variable == "shh_R2_spot"] <- "R2 Shh expression"
 mxstgmelted$variable[mxstgmelted$variable == "shh_M1_spot"] <- "M1 Shh expression"
 mxstgmelted$variable[mxstgmelted$variable == "cap_transition"] <- "Cap transition"
 mxstgmelted$variable[mxstgmelted$variable == "shboob"] <- "Anterior protrusion"
 
+mxstg <- mxstgp2
 ```
 
 
@@ -172,7 +138,7 @@ with calculated devtime
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
   
 
-mxstgmelted <- melt(mxstg, id.vars=c("ID", "Strain", "Age", "Weight", "Clutch", "shh_M2_spot", "M1_spot_split_LR", "Total_state", "stateord", "Symmetry", "groupwt", "mediantemps", "Date", "X", "nid"))
+#mxstgmelted <- melt(mxstg, id.vars=c("ID", "Strain", "Age", "Weight", "Clutch", "shh_M2_spot", "M1_spot_split_LR", "Total_state", "stateord", "Symmetry", "groupwt", "mediantemps", "Date", "X", "nid"))
   
 mxstgmelted$value[mxstgmelted$Strain == "FVB"] <- mxstgmelted$value[mxstgmelted$Strain == "FVB"] +0.05
 mxstgmelted$value[mxstgmelted$Strain == "DUHi"] <- mxstgmelted$value[mxstgmelted$Strain == "DUHi"] -0.05
@@ -184,15 +150,22 @@ mxstgmelted$variable[mxstgmelted$variable == "cap_transition"] <- "Cap transitio
 mxstgmelted$variable[mxstgmelted$variable == "shboob"] <- "Anterior protrusion"
 mxstgmelted$variable <- factor(mxstgmelted$variable, levels= c("R2 Shh expression","M1 Shh expression", "Cap transition", "Anterior protrusion") )
 
-ggplot(mxstgmelted, aes(x=mediantemps,y=value,color=Strain,shape=Strain)) +
+
+mmxstgmelted <- gather(mxstgmelted, key="agemeasure", value="oldness", c("Age","Weight", "dev01", "dev05", "dev15"))
+
+
+(p <- ggplot(mmxstgmelted, aes(x=oldness,y=value,color=Strain,shape=Strain)) +
   geom_point(size=1.5) + 
-  facet_wrap(~ variable,ncol=1) +  
+  facet_grid(variable~agemeasure, scales= "free") +  
   scale_y_continuous(breaks=c(0,1,2)) + 
   scale_colour_manual(values=c("red3",  "cornflowerblue")) +
   xlab("Computed developmental age (cdpc)")+
   ylab("") +
-  theme_bw()
+  theme_bw()+ 
+  ggtitle(paste(jaw, "character progression"))
+)
 
+ggsave(plot=p,height=10, width=14, file=paste(jaw,"charprog.pdf" ,sep="") )
 
 
 ```
