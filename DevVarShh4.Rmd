@@ -21,6 +21,12 @@ ed <- read.csv("ed.csv")
 setwd("~/Documents/varpap/new")
 
 jaw <- "mx"
+```
+
+
+
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
 mxstg <- read.table(paste(jaw, "FVBDUHiCD1scores20.txt", sep=""))
 
@@ -97,7 +103,10 @@ names(mxstgp2)[names(mxstgp2) == 'Weight.x'] <- 'Weight'
 #mxstgmelted <- gather(mxstgp2, key="variable", value="value", c(8,9,11,13))
 
 #mx
-mxstgmelted <- gather(mxstgp2, key="variable", value="value", c(11,12,14,16))
+#mxstgmelted <- gather(mxstgp2, key="variable", value="value", c(11,12,14,16))
+
+
+mxstgmelted <- gather(mxstgp2, key="variable", value="value", c("shh_R2_spot","shh_M1_spot","cap_transition","shboob"))
 
 mxstgmelted$variable[mxstgmelted$variable == "shh_R2_spot"] <- "R2 Shh expression"
 mxstgmelted$variable[mxstgmelted$variable == "shh_M1_spot"] <- "M1 Shh expression"
