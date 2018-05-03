@@ -178,6 +178,24 @@ mmxstgmelted <- gather(mxstgmelted, key="agemeasure", value="oldness", c("Age","
 ggsave(plot=p,height=10, width=14, file=paste(jaw,"charprog.pdf" ,sep="") )
 
 
+
+(p <- ggplot(mxstgmelted, aes(x=dev05,y=value,color=Strain,shape=Strain)) +
+  geom_point(size=1.5) + 
+  facet_wrap(~variable,ncol=1, scales= "free") +  
+  scale_y_continuous(breaks=c(0,1,2)) + 
+  scale_colour_manual(values=c("red3",  "cornflowerblue")) +
+  xlab("Computed developmental age (cdpc)")+
+  ylab("") +
+  theme_bw()+ 
+  ggtitle(paste(jaw, "character progression"))
+)
+
+ggsave(plot=p,height=10, width=14, file=paste(jaw,"charprog.pdf" ,sep="") )
+
+
+
+
+
 ```
 
 #Total state, one panel by strain
@@ -226,7 +244,26 @@ m5 <- gather(mxstg, key="agemeasure", value="oldness", c("Age","Weight", "dev01"
 )
 
 
+
 ggsave(plot=p,height=7, width=24, file=paste(jaw,"allstate.pdf" ,sep="") )
+
+(p <- ggplot(mxstg, aes(x=dev05,y=stateord,color=Strain)) +
+  geom_point(size=1) + 
+  facet_wrap(~Strain,ncol=1) + 
+  scale_colour_manual(values=c("red3",  "red3", "cornflowerblue","cornflowerblue"))   +
+  xlab("Computed Embryo Age (cdpc)") +
+  ylab("Embryo overall state") +
+  geom_segment(inherit.aes=FALSE, data=m4, aes(x=start, xend=end, y=y, yend=y, alpha=value, colour=variable, size=10)) +
+  scale_alpha_manual(values=c(0,0.3)) +
+  theme_bw()+
+  theme(legend.position = "none")
+)
+
+
+ggsave(plot=p,height=7, width=24,device="png", file=paste(jaw,"allstatedev05.png" ,sep="") )
+
+
+ggsave(plot=p,height=7, width=5,device="pdf", file=paste(jaw,"allstatedev05.pdf" ,sep="") )
 
 
 
@@ -348,7 +385,18 @@ pdf(paste(jaw,"allvar.pdf" ,sep=""),height=10, width=10)
 multiplot(plotlist=plotlistbox, cols=2)
 dev.off()
 
+
+ggsave(plot=plotlist[[2]],height=7, width=12,device="png", file=paste(jaw,"timevardev05.png" ,sep="") )
+
+ggsave(plot=plotlist[[2]],height=7, width=12,device="pdf", file=paste(jaw,"timevardev05.pdf" ,sep="") )
+
+
+ggsave(plot=plotlistbox[[2]],height=7, width=12,device="pdf", file=paste(jaw,"allvardev05.pdf" ,sep="") )
+
+
+ggsave(plot=plotlistbox[[2]],height=7, width=12,device="png", file=paste(jaw,"allvardev05.png" ,sep="") )
 ```
+
 
 
 
