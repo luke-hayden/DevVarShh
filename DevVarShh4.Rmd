@@ -6,7 +6,7 @@ output:
   pdf_document: default
   html_document: default
 ---
-
+##Setup
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 library("ggplot2")
 library("reshape2")
@@ -21,7 +21,7 @@ setwd("~/Documents/varpap")
 ed <- read.csv("ed.csv")
 setwd("~/Documents/varpap/new")
 
-jaw <- "md"
+jaw <- "mx"
 ```
 
 
@@ -71,16 +71,49 @@ write.csv(ndat, file="ndat.csv")
 write.csv(mxstgp, file=paste(jaw, "dat.csv", sep=""))
 ```
 
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+combdat$correction <- combdat$sd
+combdat$correction[combdat$sd == "001"] <- 10
+combdat$correction <- as.numeric(combdat$correction)/ 100
+
+
+
+combdat$devlev <- case_when(
+  combdat$sd == "001" ~ "sd.litter.preg = 0.1",
+  combdat$sd == "005" ~ "sd.litter.preg = 0.05",
+  combdat$sd == "015" ~ "sd.litter.preg = 0.15")
+
+
+(p=ggplot(combdat, aes(y=Weight, x=dev, colour=Strain))+
+  geom_point() + 
+  facet_wrap(Strain~devlev))+
+  scale_colour_manual(values=c("red3",  "cornflowerblue")) +
+  xlab("Computed developmental age (cdpc)")+
+  ylab("Embryo Weight (mg)") +
+  theme_bw()
+)
+
+
+
+
+ggsave(plot=p,height=7, width=14,device="png", file="wtvscdpc.png" )
+
+
+ggsave(plot=p,height=7, width=5,device="pdf", file=paste(jaw,"allstatedev05.pdf" ,sep="") )
+
+```
+
+
+
 
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-mxstgp2 <- read.csv(paste(jaw,"dat2.csv", sep="")) %>%
-filter(!(is.na(ident)))
+#mxstgp2 <- read.csv(paste(jaw,"dat2.csv", sep="")) %>%filter(!(is.na(ident)))
 
 
 
-mxstgp2 <- left_join(mxstgp2, ndat, by="ident")
+#mxstgp2 <- left_join(mxstgp2, ndat, by="ident")
 
-write.csv(mxstgp2, file=paste(jaw, "datagood.csv", sep=""))
+#write.csv(mxstgp2, file=paste(jaw, "datagood.csv", sep=""))
 
 mxstgp2 <- read.csv( file=paste(jaw, "datagood.csv", sep=""))
 
@@ -94,11 +127,49 @@ mxstgp2 <- read.csv( file=paste(jaw, "datagood.csv", sep=""))
 
 ```
 
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+ggplot(ndat05, aes(x=Weight, y=dev, colour=Strain)) +
+  geom_point()+
+  geom_smooth()+
+  ggtitle(jaw)
+```
+
+
+
+#Model age vs weight
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+
+
+meascomp <- gather(mxstgp2, key="variable", value="cdpc", c("dev01", "dev05", "dev15"))
+meascomp$devlev <- case_when(
+  meascomp$variable == "dev01" ~ "sd.litter.preg = 0.1",
+  meascomp$variable == "dev05" ~ "sd.litter.preg = 0.05",
+  meascomp$variable == "dev15" ~ "sd.litter.preg = 0.15")
+
+
+(p=ggplot(meascomp, aes(x=Weight.y, y=cdpc, colour=Strain.x, label=nid.x))+
+  geom_point() + 
+  facet_wrap(Strain.x~devlev))+
+  scale_colour_manual(values=c("red3",  "cornflowerblue"), name="Strain") +
+  xlab("Computed developmental age (cdpc)")+
+  ylab("Embryo Weight (mg)") +
+  theme_bw()
+)
+  
+
+
+
+```
+
+
+
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
 names(mxstgp2)[names(mxstgp2) == 'Strain.x'] <- 'Strain'
 
-names(mxstgp2)[names(mxstgp2) == 'Weight.x'] <- 'Weight'
+names(mxstgp2)[names(mxstgp2) == 'Weight.y'] <- 'Weight'
 
 #md
 #mxstgmelted <- gather(mxstgp2, key="variable", value="value", c(8,9,11,13))
@@ -116,6 +187,19 @@ mxstgmelted$variable[mxstgmelted$variable == "shboob"] <- "Anterior protrusion"
 
 mxstg <- mxstgp2
 ```
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+p=ggplot(mxstgp2, aes(x=dev05, y=Weight, colour=Strain)) +geom_point()+ geom_smooth() + 
+  scale_colour_manual(values=c("red3",  "cornflowerblue")) +
+  xlab("Computed developmental age (cdpc)")+
+  ylab("Embryo Weight (mg)") +
+  theme_bw()+ 
+  ggtitle(paste(jaw, "weight vs cpdc"))
+
+
+ggsave(plot=p,height=10, width=14, file=paste(jaw,"wtvdev05.pdf" ,sep="") )
+```
+
 
 
 #Logistic regression
@@ -271,33 +355,15 @@ ggsave(plot=p,height=7, width=5,device="pdf", file=paste(jaw,"allstatedev05.pdf"
 ```
 
 
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-
-ggplot(m2, aes(x=cdpc,y=stateord,color=Strain)) +
-  geom_point(size=1) + 
-  facet_wrap(~ Strain,ncol=1) + 
-  scale_colour_manual(values=c("red3",  "red3", "cornflowerblue","cornflowerblue"))   +
-  xlab("Computed Embryo Age (cdpc)") +
-  ylab("Embryo overall state") +
-  geom_segment(inherit.aes=FALSE, data=m4, aes(x=start, xend=end, y=y, yend=y, alpha=value, colour=variable, size=10)) +
-  scale_alpha_manual(values=c(0,0.3)) +
-  theme_bw()+
-  theme(legend.position = "none")
-
-
-
-
-```
-
-
-
-
 #Weight and dev state dist matrices for DUHI
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
 stgmin <- select(mxstg, c("ID","Strain", "shh_R2_spot", "shh_M1_spot", "cap_transition", "shboob", "Weight", "dev01", "dev05", "dev15"))
 
 agethresh <- c(10,0.25,0.25,0.25)
+#agethresh <- c(5,0.1,0.1,0.1)
+
+
 plotlist <- list()
 plotlistbox <- list()
 
@@ -343,8 +409,8 @@ fvtimevar <- subset(data.frame(agedmat, r2dmat, m1dmat, capdmat, shbdmat, alldma
 timevar <- rbind(dutimevar, fvtimevar)
 
 (p<-ggplot(data=timevar, aes(x=pairmeanage, y=alldmat, colour=Strain)) +
-  geom_point(size=2, alpha =0.05) + 
-  stat_smooth(method=loess, size=1.5) +
+  geom_point(size=2, alpha =0.0) + 
+  stat_smooth(method=loess,size=1.5) +
 #  ylim(-0.5,2)+ 
   scale_colour_manual(values=c("red3", "cornflowerblue")) +
   ylab("Mean Developmental State Difference") +
@@ -376,26 +442,35 @@ plotlistbox[[i]] <- p
 
 
 
-pdf(paste(jaw,"timevar.pdf" ,sep=""),height=18, width=7)
+
+
+pdf(paste(jaw,fac, "timevar.pdf" ,sep=""),height=18, width=7)
 multiplot(plotlist=plotlist, cols=1)
 dev.off()
 
 
-pdf(paste(jaw,"allvar.pdf" ,sep=""),height=10, width=10)
+pdf(paste(jaw,fac,"allvar.pdf" ,sep=""),height=10, width=10)
 multiplot(plotlist=plotlistbox, cols=2)
 dev.off()
 
 
-ggsave(plot=plotlist[[2]],height=7, width=12,device="png", file=paste(jaw,"timevardev05.png" ,sep="") )
+ggsave(plot=plotlist[[3]],height=4, width=7,device="png", file=paste(jaw,fac,"timevardev05.png" ,sep="") )
 
-ggsave(plot=plotlist[[2]],height=7, width=12,device="pdf", file=paste(jaw,"timevardev05.pdf" ,sep="") )
-
-
-ggsave(plot=plotlistbox[[2]],height=7, width=12,device="pdf", file=paste(jaw,"allvardev05.pdf" ,sep="") )
+ggsave(plot=plotlist[[3]],height=4, width=7,device="pdf", file=paste(jaw,fac,"timevardev05.pdf" ,sep="") )
 
 
-ggsave(plot=plotlistbox[[2]],height=7, width=12,device="png", file=paste(jaw,"allvardev05.png" ,sep="") )
+plotlist[[3]]
+
+ggsave(plot=plotlistbox[[3]],height=3, width=4,device="pdf", file=paste(jaw,"allvardev05.pdf" ,sep="") )
+
+
+plotlistbox[[3]]
+
+ggsave(plot=plotlistbox[[3]],height=3, width=4,device="png", file=paste(jaw,"allvardev05.png" ,sep="") )
 ```
+
+
+
 
 
 
