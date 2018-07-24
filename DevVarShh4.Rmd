@@ -21,7 +21,7 @@ setwd("~/Documents/varpap")
 ed <- read.csv("ed.csv")
 setwd("~/Documents/varpap/new")
 
-jaw <- "mx"
+jaw <- "md"
 ```
 
 
@@ -35,6 +35,7 @@ jaw <- "mx"
 
 
 mxstgp2 <- read.csv( file=paste(jaw, "datagood.csv", sep=""))
+
 
 
 ```
@@ -54,22 +55,27 @@ ggplot(ndat05, aes(x=Weight, y=dev, colour=Strain)) +
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
 
-meascomp <- gather(mxstgp2, key="variable", value="cdpc", c("dev01", "dev05", "dev15"))
+meascomp <- gather(mxstgp2, key="variable", value="cdpc", c("dev01", "dev05"))
 meascomp$devlev <- case_when(
-  meascomp$variable == "dev01" ~ "sd.litter.preg = 0.1",
-  meascomp$variable == "dev05" ~ "sd.litter.preg = 0.05",
-  meascomp$variable == "dev15" ~ "sd.litter.preg = 0.15")
+  meascomp$variable == "dev01" ~ "permissive model",
+  meascomp$variable == "dev05" ~ "realistic model")
 
 
 (p=ggplot(meascomp, aes(x=Weight.y, y=cdpc, colour=Strain.x, label=nid.x))+
   geom_point() + 
-  facet_wrap(Strain.x~devlev))+
+  facet_wrap(Strain.x~devlev)+
   scale_colour_manual(values=c("red3",  "cornflowerblue"), name="Strain") +
   xlab("Computed developmental age (cdpc)")+
   ylab("Embryo Weight (mg)") +
   theme_bw()
 )
-  
+ 
+ggsave(plot=p,height=10, width=10, file=paste("meascomp.pdf" ,sep="") )
+
+
+ggsave(plot=p,height=10, width=10,device="png",  file=paste("meascomp.png" ,sep="") )
+
+ 
 
 
 
@@ -151,12 +157,16 @@ mxstgmelted$variable[mxstgmelted$variable == "shboob"] <- "Anterior protrusion"
 mxstgmelted$variable <- factor(mxstgmelted$variable, levels= c("R2 Shh expression","M1 Shh expression", "Cap transition", "Anterior protrusion") )
 
 
-mmxstgmelted <- gather(mxstgmelted, key="agemeasure", value="oldness", c("Age","Weight", "dev01", "dev05", "dev15"))
+mmxstgmelted <- gather(mxstgmelted, key="agemeasure", value="oldness", c("Weight", "dev01", "dev05"))
 
+mmxstgmelted$devlev <- case_when(
+  mmxstgmelted$agemeasure== "dev01" ~ "Computed age: permissive model (cdpc)",
+  mmxstgmelted$agemeasure == "Weight" ~ "Embryo weight (mg)",
+  mmxstgmelted$agemeasure == "dev05" ~ "Computed age: realistic model (cpdc)")
 
 (p <- ggplot(mmxstgmelted, aes(x=oldness,y=value,color=Strain,shape=Strain)) +
   geom_point(size=1.5) + 
-  facet_grid(variable~agemeasure, scales= "free") +  
+  facet_grid(variable~devlev, scales= "free") +  
   scale_y_continuous(breaks=c(0,1,2)) + 
   scale_colour_manual(values=c("red3",  "cornflowerblue")) +
   xlab("Computed developmental age (cdpc)")+
@@ -166,6 +176,9 @@ mmxstgmelted <- gather(mxstgmelted, key="agemeasure", value="oldness", c("Age","
 )
 
 ggsave(plot=p,height=10, width=14, file=paste(jaw,"charprog.pdf" ,sep="") )
+
+ggsave(plot=p,height=10, width=14,device="png",  file=paste(jaw,"charprog.png" ,sep="") )
+
 
 
 
@@ -180,7 +193,10 @@ ggsave(plot=p,height=10, width=14, file=paste(jaw,"charprog.pdf" ,sep="") )
   ggtitle(paste(jaw, "character progression"))
 )
 
-ggsave(plot=p,height=10, width=14, file=paste(jaw,"charprog.pdf" ,sep="") )
+ggsave(plot=p,height=10, width=14, file=paste(jaw,"charprog05.pdf" ,sep="") )
+
+
+ggsave(plot=p,height=10, width=14,device="png",  file=paste(jaw,"charprog05.png" ,sep="") )
 
 
 
@@ -219,11 +235,18 @@ m4$Strain[m4$variable == "fin"] <- "FVB"
 
 
 
-m5 <- gather(mxstg, key="agemeasure", value="oldness", c("Age","Weight", "dev01", "dev05", "dev15"))
+m5 <- gather(mxstg, key="agemeasure", value="oldness", c("Weight", "dev01", "dev05"))
+
+
+
+m5$devlev <- case_when(
+  m5$agemeasure== "dev01" ~ "Computed age: permissive model (cdpc)",
+  m5$agemeasure == "Weight" ~ "Embryo weight (mg)",
+  m5$agemeasure == "dev05" ~ "Computed age: realistic model (cpdc)")
 
 (p <- ggplot(m5, aes(x=oldness,y=stateord,color=Strain)) +
   geom_point(size=1) + 
-  facet_grid(Strain~agemeasure, scales="free") + 
+  facet_grid(Strain~devlev, scales="free") + 
   scale_colour_manual(values=c("red3",  "red3", "cornflowerblue","cornflowerblue"))   +
   xlab("Computed Embryo Age (cdpc)") +
   ylab("Embryo overall state") +
@@ -236,6 +259,10 @@ m5 <- gather(mxstg, key="agemeasure", value="oldness", c("Age","Weight", "dev01"
 
 
 ggsave(plot=p,height=7, width=24, file=paste(jaw,"allstate.pdf" ,sep="") )
+
+
+ggsave(plot=p,height=7, width=24, device="png",file=paste(jaw,"allstate.png" ,sep="") )
+
 
 (p <- ggplot(mxstg, aes(x=dev05,y=stateord,color=Strain)) +
   geom_point(size=1) + 
@@ -264,7 +291,7 @@ ggsave(plot=p,height=7, width=5,device="pdf", file=paste(jaw,"allstatedev05.pdf"
 #Weight and dev state dist matrices for DUHI
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
-stgmin <- select(mxstg, c("ID","Strain", "shh_R2_spot", "shh_M1_spot", "cap_transition", "shboob", "Weight", "dev01", "dev05", "dev15"))
+stgmin <- select(mxstg, c("ID","Strain", "shh_R2_spot", "shh_M1_spot", "cap_transition", "shboob", "Weight", "dev01", "dev05"))
 
 agethresh <- c(10,0.25,0.25,0.25)
 #agethresh <- c(5,0.1,0.1,0.1)
@@ -274,11 +301,23 @@ plotlist <- list()
 plotlistbox <- list()
 
 
-for (i in 1:4){
+for (i in 1:3){
   
 
 stgmin$agemeas <- stgmin[,6+i]
 varname <- colnames(stgmin)[6+i]
+
+
+varaxe <- case_when(
+  varname== "dev01" ~ "Computed age (cdpc)",
+  varname == "Weight" ~ "Embryo weight (mg)",
+  varname == "dev05" ~ "Computed age (cpdc)")
+
+vardesc <- case_when(
+  varname== "dev01" ~ "Computed age: permissive",
+  varname == "Weight" ~ "Embryo weight",
+  varname == "dev05" ~ "Computed age: realistic")
+
   
 mxsd <-subset(stgmin, Strain=="DUHi")
 
@@ -320,17 +359,16 @@ timevar <- rbind(dutimevar, fvtimevar)
 #  ylim(-0.5,2)+ 
   scale_colour_manual(values=c("red3", "cornflowerblue")) +
   ylab("Mean Developmental State Difference") +
-  xlab("Computed Embryo Age (cdpc)") + 
+  xlab(paste(varaxe)) + 
 #  coord_fixed(ratio=40)+
   theme_bw()+
-  ggtitle(label=paste("Time series, age measure:", varname), 
-                subtitle=paste("threshold:" ,agethresh[i])))
+  ggtitle(label=paste(vardesc)))
 plotlist[[i]] <- p
 
 
 
 wiltest <- wilcox.test(timevar$alldmat[timevar$Strain == "DUHi"],timevar$alldmat[timevar$Strain == "FVB"] )
-wilpval <- round(wiltest$p.value, 6)
+wilpval <- round(wiltest$p.value, 5) + 0.00001
 
 (p<-ggplot(data=timevar, aes(y=alldmat,x=Strain, fill=Strain)) +
   geom_boxplot(outlier.shape = NA) + 
@@ -339,8 +377,8 @@ wilpval <- round(wiltest$p.value, 6)
   ylab("Mean Developmental State Difference") +
   xlab("Strain") + 
   theme_bw()+
-  ggtitle(label=paste("Overall variability, age measure:", varname), 
-                subtitle=paste("threshold:" ,agethresh[i], "wilcoxon test pvalue=", wilpval)))
+  ggtitle(label=paste("Overall variability:", vardesc), 
+                subtitle=paste("wilcoxon test p-value < ", wilpval)))
 
 plotlistbox[[i]] <- p
 
@@ -350,19 +388,27 @@ plotlistbox[[i]] <- p
 
 
 
-pdf(paste(jaw,fac, "timevar.pdf" ,sep=""),height=18, width=7)
+pdf(paste(jaw, "timevar.pdf" ,sep=""),height=18, width=7)
 multiplot(plotlist=plotlist, cols=1)
 dev.off()
 
 
-pdf(paste(jaw,fac,"allvar.pdf" ,sep=""),height=10, width=10)
+png(paste(jaw, "timevar.png" ,sep=""),height=1500, width=600)
+multiplot(plotlist=plotlist, cols=1)
+dev.off()
+
+pdf(paste(jaw,"allvar.pdf" ,sep=""),height=10, width=10)
 multiplot(plotlist=plotlistbox, cols=2)
 dev.off()
 
 
-ggsave(plot=plotlist[[3]],height=4, width=7,device="png", file=paste(jaw,fac,"timevardev05.png" ,sep="") )
+png(paste(jaw, "allvar.png" ,sep=""),height=800, width=800)
+multiplot(plotlist=plotlistbox, cols=1)
+dev.off()
 
-ggsave(plot=plotlist[[3]],height=4, width=7,device="pdf", file=paste(jaw,fac,"timevardev05.pdf" ,sep="") )
+ggsave(plot=plotlist[[3]],height=4, width=7,device="png", file=paste(jaw,"timevardev05.png" ,sep="") )
+
+ggsave(plot=plotlist[[3]],height=4, width=7,device="pdf", file=paste(jaw,"timevardev05.pdf" ,sep="") )
 
 
 plotlist[[3]]
@@ -378,177 +424,4 @@ ggsave(plot=plotlistbox[[3]],height=3, width=4,device="png", file=paste(jaw,"all
 
 
 
-
-
-
-
-
-
-#Plotting state difference versus weight difference
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-
-########
-plot(dvwtdmat, dvstatedmat, lty=0, pch="I", cex=4,col=adjustcolor("forest green", alpha=0.05), xlab="Age difference(mg)", ylab="Developmental state difference", main="DUHi")
-dev.copy(svg,'DUdevdistVweightdist.svg')
-dev.off()
-dev.copy(pdf,'DUdevdistVweightdist.pdf')
-dev.off()
-
-dev.copy(png,'DUdevdistVweightdistg.png')
-dev.off()
-
-
-plot(fvwtdmat, fvstatedmat, lty=0, col=adjustcolor("cornflowerblue", alpha=0.05), pch="I", cex=4, xlab="Age difference(mg)", ylab="Developmental state difference", main="FVB")
-dev.copy(svg,'FVdevdistVweightdist.svg')
-dev.off()
-dev.copy(pdf,'FVdevdistVweightdist.pdf')
-dev.off()
-dev.copy(png,'FVdevdistVweightdist.png')
-dev.off()
-
-
-
-plot(fvwtdmat, fvstatedmat, lty=0, col=adjustcolor("blue", alpha=0.005), pch=15, cex=4, xlab="Age difference(mg)", ylab="Developmental state difference", xlim =c(0,400))
-lines(dvwtdmat, dvstatedmat, type="p", pch=15, cex=4,col=adjustcolor("red", alpha=0.006))
-lines(fvwtdmat, fvstatedmat, type="p", pch=15, cex=4,col=adjustcolor("blue", alpha=0.005))
-#lines(dvwtdmat, dvstatedmat, type="p", pch=15, cex=4,col=adjustcolor("red3", alpha=0.01))
-#lines(fvwtdmat, fvstatedmat, type="p", pch=15, cex=4,col=adjustcolor("cornflower blue", alpha=0.005))
-
-legend(320,1.5,  c("DUHi","FVB"), lty=c(1,1), lwd=c(2,2),col=c("red","cornflowerblue"))
-dev.copy(svg,'bothdevdistVweightdist.svg')
-dev.off()
-dev.copy(pdf,'bothdevdistVweightdist.pdf')
-dev.off()
-
-```
-
-
-#Mantel
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-
-mxsd <- subset(mxstg[,c(2,3,6,9,10,12,14)], Strain=="DUHi")
-
-agedmat <- dist(mxsd$mediantemps)
-r2dmat <- dist(mxsd$shh_R2_spot)
-m1dmat <- dist(mxsd$shh_M1_spot)
-capdmat <- dist(mxsd$cap_transition)
-shbdmat <- dist(mxsd$shboob)
-
-
-dualldmat<- r2dmat + m1dmat +capdmat + shbdmat
-duagedmat<- agedmat
-
-mxsd <- subset(mxstg[,c(2,3,6,9,10,12,14)], Strain=="FVB")
-
-agedmat <- dist(mxsd$mediantemps)
-r2dmat <- dist(mxsd$shh_R2_spot)
-m1dmat <- dist(mxsd$shh_M1_spot)
-capdmat <- dist(mxsd$cap_transition)
-shbdmat <- dist(mxsd$shboob)
-
-
-fvalldmat<- r2dmat + m1dmat +capdmat + shbdmat
-fvagedmat<- agedmat
-
-
-mxfmant <- mantel(formula = fvagedmat ~ fvalldmat, data = sys.parent(), nperm = 1000,
-       mrank = FALSE, nboot = 500, pboot = 0.9, cboot = 0.95)
-summary(mxfmant)
-mxfmant
-mxdmant <- mantel(formula = duagedmat ~ dualldmat, data = sys.parent(), nperm = 1000,
-                mrank = FALSE, nboot = 500, pboot = 0.9, cboot = 0.95)
-summary(mxdmant)
-mxdmant
-
-dpmant <- multi.mantel(duagedmat , dualldmat, nperm=1000)
-dpmant
-fpmant <- multi.mantel(fvagedmat , fvalldmat, nperm=1000)
-fpmant
-```
-
-Plotting residuals from the Mantel
-
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-
-plot(dpmant$residuals, col="red3", type="o", pch=16,lty=0,size=4, alpha=0.1 ,ylab="Residuals", main="DUHi",ylim=c(0,2))
-
-
-points(fpmant$residuals, col="cornflowerblue", type="o", pch=16,lty=0,size=4, alpha=0.2 ,ylab="Residuals", main="FVB", ylim=c(0,2))
-```
-
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-
-
-dreds <- c(dpmant$residuals)
-
-freds <- c(fpmant$residuals)
-```
-
- 
-
-#Wilcoxon rank-sum test on the residuals
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-wilcox.test(dreds[dreds >0], freds[freds >0])
-wilcox.test(abs(freds), abs(dreds))
-
-```
-
-#Boxplot of total developmental variation 
-Takes the positive residuals from each Mantel test of the developmental state distance matrix vs the embryo weight distance matrix
-
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-ddu <- data.frame(c("DUHi"), dreds)
-colnames(ddu) <- c("Strain", "resid")
-ffu <- data.frame(c("FVB"), freds)
-colnames(ffu) <- c("Strain", "resid")
-
-
-
-resids <- rbind(ddu,ffu)
-
-
-ggplot(data=resids, aes(x=Strain, y= resid, colour=Strain))+geom_point(alpha=0.01)
-
-p=ggplot(data=resids, aes(x=Strain, y= resid, colour=Strain))+geom_point(alpha=0.01)+
-  geom_violin()
-ggsave(plot=p, filename="violin.pdf")
-
-p=ggplot(data=resids, aes(x=Strain, y= resid, colour=Strain))+geom_point(alpha=0.01)+
-  geom_boxplot()
-
-ggsave(plot=p, filename="box.pdf")
-
-ggplot(data=resids, aes(fill=Strain, x=resid)) +geom_density()
-
-qplot(Strain, resid, data = resids, geom = "boxplot",color=Strain) + scale_colour_manual(values=c("red3", "cornflowerblue"))+ylab("Developmental Variation")
-dev.copy(svg,'devvarboxplotplot.svg')
-dev.off()
-dev.copy(pdf,'devvarboxplotplot.pdf')
-dev.off()
-
-```
-
-
-```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-
-dulm <-lm(mxstg$Age[mxstg$Strain == "DUHi"] ~ mxstg$mediantemps[mxstg$Strain == "DUHi"])
-fvlm <- lm(mxstg$Age[mxstg$Strain == "FVB"] ~ mxstg$mediantemps[mxstg$Strain == "FVB"])
-
-
-
-a=ggplot(mxstgmelted, aes(x=Weight, y=mediantemps, colour=Strain)) +
-  geom_point()+
-  stat_smooth(method="lm")+
-  facet_wrap(~Strain, ncol=1)+
-  scale_colour_manual(values=c("red3", "cornflowerblue"))+
-  ylab("Computed developmental age (cdpc)")+
-  xlab("Weight (mg)") +
-  theme_bw()+
-  geom_text(inherit.aes=FALSE, 
-            data=data.frame(num= c(paste("n=", sum(mxstg$Strain == "DUHi")), paste("n=",sum(mxstg$Strain == "FVB"))), 
-                                   Strain= c("DUHi", "FVB"), x=c(100,100), y=c(16,16)), aes(x=x,y=y,label=num) )                                 
-
-ggsave(plot=a, file="dvflm.pdf")
-
-```
 
