@@ -10,9 +10,9 @@ output:
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 library("ggplot2")
 library("reshape2")
-library("ade4") 
-library("ecodist")
-library("phytools")
+#library("ade4") 
+#library("ecodist")
+#library("phytools")
 library("dplyr")
 library("tidyr")
 library("Rmisc")
@@ -21,7 +21,7 @@ setwd("~/Documents/varpap")
 ed <- read.csv("ed.csv")
 setwd("~/Documents/varpap/new")
 
-jaw <- "md"
+jaw <- "mx"
 ```
 
 
@@ -42,10 +42,10 @@ mxstgp2 <- read.csv( file=paste(jaw, "datagood.csv", sep=""))
 
 
 ```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-ggplot(ndat05, aes(x=Weight, y=dev, colour=Strain)) +
-  geom_point()+
-  geom_smooth()+
-  ggtitle(jaw)
+# ggplot(ndat05, aes(x=Weight, y=dev, colour=Strain)) +
+#   geom_point()+
+#   geom_smooth()+
+#   ggtitle(jaw)
 ```
 
 
@@ -358,7 +358,7 @@ timevar <- rbind(dutimevar, fvtimevar)
   stat_smooth(method=loess,size=1.5) +
 #  ylim(-0.5,2)+ 
   scale_colour_manual(values=c("red3", "cornflowerblue")) +
-  ylab("Mean Developmental State Difference") +
+  ylab("Developmental State Difference") +
   xlab(paste(varaxe)) + 
 #  coord_fixed(ratio=40)+
   theme_bw()+
@@ -408,8 +408,10 @@ dev.off()
 
 ggsave(plot=plotlist[[3]],height=4, width=7,device="png", file=paste(jaw,"timevardev05.png" ,sep="") )
 
-ggsave(plot=plotlist[[3]],height=4, width=7,device="pdf", file=paste(jaw,"timevardev05.pdf" ,sep="") )
+ggsave(plot=plotlist[[3]],height=4, width=5.2,device="pdf", file=paste(jaw,"timevardev05.pdf" ,sep="") )
+```
 
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
 plotlist[[3]]
 
@@ -422,6 +424,26 @@ ggsave(plot=plotlistbox[[3]],height=3, width=4,device="png", file=paste(jaw,"all
 ```
 
 
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+cultexp <- data.frame(Strain= c("FVB", "FVB", "DUHi", "DUHi"), Condition= c("Incorporated", "Separate", "Incorporated", "Separate"),perc= c(.78,.22,.11,.89))  #num=c(7,2,1,8))
+brks <- c(0, 0.25, 0.5, 0.75, 1)
+
+
+(p=ggplot(cultexp, aes(Condition, perc, fill=Strain, alpha=Condition))+scale_y_continuous(labels = scales::percent)+
+#scale_y_continuous(breaks = brks, labels = scales::percent(brks)) +
+  geom_bar(stat="identity", width=0.6)+
+  facet_wrap(~Strain)+
+  theme_bw()+
+#  theme(axis.text.x = element_text(angle = 0, hjust = 1))+
+#  theme(axis.text.y = element_text(angle = 90, hjust = -0))+
+  scale_fill_manual(values=c("red3", "cornflower blue"), guide=F)+
+  scale_alpha_manual(values=c(1,0.5), guide=F)+
+  ylab(""))#+
+#  ggtitle("", subtitle= "p=0.015")
+  
+
+ggsave(plot=p,height=4, width=4,device="pdf", file=paste(jaw,"cultexp.pdf" ,sep="") )
+```
 
 
 
